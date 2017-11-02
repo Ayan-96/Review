@@ -1,24 +1,25 @@
 import pandas as pd
 import numpy as np
 import time
-import pp
-job_server=pp.Server()
-def gradient(x, y, theta):    
+import pp                                                                                       #importing pp module
+job_server=pp.Server()                                                                          """starting pp execution server with the number of workers set
+                                                                                                to the number ofprocessors in the system"""
+def gradient(x, y, theta):                                                                      #user defined function
     return (x.transpose())*((x*theta)-y)
-def batch_generator(X,y,batch_size):
+def batch_generator(X,y,batch_size):                                                            #user defined function
     	for i in np.arange(0, X.shape[0], batch_size):
          yield (X[i:i + batch_size], y[i:i + batch_size])
 
-def batch_g_d(X, y, alpha, iterations,batch_size):    
-    theta = np.matrix(np.zeros((X.shape[1],1)))
-    batches=[(xi,yi) for (xi,yi) in batch_generator(X,y,batch_size)]    
+def batch_g_d(X, y, alpha, iterations,batch_size):                                              #user defined function
+    theta = np.matrix(np.zeros((X.shape[1],1)))                                                  
+    batches=[(xi,yi) for (xi,yi) in batch_generator(X,y,batch_size)]                            #creating batch
     for iteration in range(iterations):                    
-        s = np.matrix(np.zeros((X.shape[1],1)))
+        s = np.matrix(np.zeros((X.shape[1],1)))                                                 #converting into matrix
         jobs=list()
         r=list()
         for i in batches:
-            j=job_server.submit(gradient,(i[0],i[1],theta),(),("numpy",))
-            jobs.append(j)
+            j=job_server.submit(gradient,(i[0],i[1],theta),(),("numpy",))                       #submit() is used to submits function to execution queue
+            jobs.append(j)                                                                      #list.append() is used to add data  to list
         for j in jobs:
             r.append(j())
         """
@@ -36,12 +37,12 @@ def batch_g_d(X, y, alpha, iterations,batch_size):
         print("Iteration: ",iteration+1," Line: ",float(theta[0])," + ",float(theta[1]),"x              ",end="\r")
     print("\n")    
     return theta
-data = pd.read_csv('ex1data1.txt', names = ['x', 'y'])
-X_df = pd.DataFrame(data.x)
+data = pd.read_csv('ex1data1.txt', names = ['x', 'y'])                                          #reading .txt file
+X_df = pd.DataFrame(data.x)                                                                     #creating data frame
 y_df = pd.DataFrame(data.y)
 iterations = 1500
 alpha = 0.01
-X = np.c_[np.ones((X_df.shape[0],1)),np.matrix(X_df)]
+X = np.c_[np.ones((X_df.shape[0],1)),np.matrix(X_df)]                                           # numpy.c_ translate slice object to concatenation.
 y = np.matrix(y_df)
 batch_size = 32
 time1=time.time()
